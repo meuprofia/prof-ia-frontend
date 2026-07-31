@@ -39,7 +39,8 @@ export const QuizView: React.FC<QuizViewProps> = ({ profile, onRewardCoins }) =>
     setCoinsEarned(0);
 
     try {
-      const res = await fetch(getApiUrl('/api/gemini/quiz'), {
+      const API_URL = import.meta.env.VITE_API_URL || '';
+const res = await fetch(`${API_URL}/api/gemini/quiz`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
