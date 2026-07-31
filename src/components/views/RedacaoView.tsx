@@ -43,7 +43,7 @@ export const RedacaoView: React.FC<RedacaoViewProps> = ({
     setAvaliacao(null);
 
     try {
-      const res = await fetch(getApiUrl('/api/gemini/redacao'), {
+      const res = await fetch(`${getApiUrl()}/api/gemini/redacao`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
