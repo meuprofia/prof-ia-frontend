@@ -143,7 +143,7 @@ export const GestorView: React.FC<GestorViewProps> = ({ profile, onNavigate }) =
   const fetchUsers = async () => {
     try {
       setLoadingUsers(true);
-      const res = await fetch(getApiUrl('/api/gestor/users'));
+      const res = await fetch(`${getApiUrl()}/api/gestor/users`);
       if (res.ok) {
         const data = await res.json();
         if (data.users && Array.isArray(data.users) && data.users.length > 0) {
