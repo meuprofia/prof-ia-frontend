@@ -142,7 +142,7 @@ export interface UserRecord {
   passwordHash?: string;
 }
 
-// Simulated registered user database
+// Real registered user database (starts with Gestor account)
 const userDatabase: Record<string, UserRecord> = {
   "meuprofia@gmail.com": {
     id: "usr_gestor",
@@ -153,136 +153,6 @@ const userDatabase: Record<string, UserRecord> = {
     status: "Ativo",
     ultimoAcesso: "Hoje, agora",
     origem: "Painel Gestor",
-  },
-  "lucas@estudante.com": {
-    id: "usr_101",
-    email: "lucas@estudante.com",
-    nome: "Lucas Silva",
-    plano: "Free",
-    dataCadastro: "2026-02-15",
-    status: "Ativo",
-    ultimoAcesso: "Há 10 minutos",
-    origem: "Web App",
-  },
-  "marina.costa@gmail.com": {
-    id: "usr_102",
-    email: "marina.costa@gmail.com",
-    nome: "Marina Costa",
-    plano: "Premium",
-    dataCadastro: "2026-02-18",
-    status: "Ativo",
-    ultimoAcesso: "Há 1 hora",
-    origem: "Web App",
-  },
-  "pedro.almeida@yahoo.com.br": {
-    id: "usr_103",
-    email: "pedro.almeida@yahoo.com.br",
-    nome: "Pedro Almeida",
-    plano: "Free",
-    dataCadastro: "2026-02-20",
-    status: "Ativo",
-    ultimoAcesso: "Hoje, 14:30",
-    origem: "Anamnese IA",
-  },
-  "carolina.santos@outlook.com": {
-    id: "usr_104",
-    email: "carolina.santos@outlook.com",
-    nome: "Carolina Santos",
-    plano: "Premium",
-    dataCadastro: "2026-02-22",
-    status: "Ativo",
-    ultimoAcesso: "Há 2 horas",
-    origem: "Landing Page",
-  },
-  "felipe.oliveira@hotmail.com": {
-    id: "usr_105",
-    email: "felipe.oliveira@hotmail.com",
-    nome: "Felipe Oliveira",
-    plano: "Free",
-    dataCadastro: "2026-02-24",
-    status: "Ativo",
-    ultimoAcesso: "Ontem",
-    origem: "Web App",
-  },
-  "beatriz.lima@gmail.com": {
-    id: "usr_106",
-    email: "beatriz.lima@gmail.com",
-    nome: "Beatriz Lima",
-    plano: "Premium",
-    dataCadastro: "2026-02-25",
-    status: "Ativo",
-    ultimoAcesso: "Há 3 horas",
-    origem: "Loja XP",
-  },
-  "gabriel.souza@uol.com.br": {
-    id: "usr_107",
-    email: "gabriel.souza@uol.com.br",
-    nome: "Gabriel Souza",
-    plano: "Free",
-    dataCadastro: "2026-02-26",
-    status: "Ativo",
-    ultimoAcesso: "Há 2 dias",
-    origem: "Redação ENEM",
-  },
-  "camila.rodrigues@gmail.com": {
-    id: "usr_108",
-    email: "camila.rodrigues@gmail.com",
-    nome: "Camila Rodrigues",
-    plano: "Premium",
-    dataCadastro: "2026-02-27",
-    status: "Ativo",
-    ultimoAcesso: "Hoje, 11:20",
-    origem: "Plano Semanal",
-  },
-  "rafael.mendes@gmail.com": {
-    id: "usr_109",
-    email: "rafael.mendes@gmail.com",
-    nome: "Rafael Mendes",
-    plano: "Free",
-    dataCadastro: "2026-02-28",
-    status: "Ativo",
-    ultimoAcesso: "Ontem",
-    origem: "Quiz IA",
-  },
-  "juliana.ferreira@outlook.com": {
-    id: "usr_110",
-    email: "juliana.ferreira@outlook.com",
-    nome: "Juliana Ferreira",
-    plano: "Premium",
-    dataCadastro: "2026-03-01",
-    status: "Ativo",
-    ultimoAcesso: "Há 15 minutos",
-    origem: "Landing Page",
-  },
-  "thiago.barbosa@gmail.com": {
-    id: "usr_111",
-    email: "thiago.barbosa@gmail.com",
-    nome: "Thiago Barbosa",
-    plano: "Free",
-    dataCadastro: "2026-03-02",
-    status: "Ativo",
-    ultimoAcesso: "Há 3 dias",
-    origem: "Web App",
-  },
-  "amanda.ribeiro@gmail.com": {
-    id: "usr_112",
-    email: "amanda.ribeiro@gmail.com",
-    nome: "Amanda Ribeiro",
-    plano: "Free",
-    dataCadastro: "2026-03-03",
-    status: "Ativo",
-    ultimoAcesso: "Hoje, 09:10",
-    origem: "Simulado ENEM",
-  },
-  "bruno.carvalho@gmail.com": {
-    id: "usr_113",
-    email: "bruno.carvalho@gmail.com",
-    nome: "Bruno Carvalho",
-    plano: "Premium",
-    dataCadastro: "2026-03-04",
-    status: "Ativo",
-    ultimoAcesso: "Há 4 horas",
-    origem: "Redação",
   },
 };
 
@@ -550,6 +420,106 @@ app.delete("/api/gestor/users/delete", (req, res) => {
   }
 });
 
+// AUTH API: Register user
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { nome, email, senha } = req.body;
+    if (!email || typeof email !== "string" || !email.includes("@")) {
+      return res.status(400).json({ error: "E-mail inválido." });
+    }
+    const cleanEmail = email.toLowerCase().trim();
+    const formattedName = (nome && nome.trim()) || cleanEmail.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+    if (userDatabase[cleanEmail]) {
+      return res.status(400).json({ error: "Este e-mail já possui cadastro. Faça login para acessar sua conta." });
+    }
+
+    let passwordHash: string | undefined = undefined;
+    if (senha) {
+      passwordHash = await bcrypt.hash(senha, 10);
+    }
+
+    const isGestor = cleanEmail === "meuprofia@gmail.com";
+    const newUser: UserRecord = {
+      id: `usr_${Date.now()}`,
+      email: cleanEmail,
+      nome: formattedName,
+      plano: isGestor ? "Premium" : "Free",
+      dataCadastro: new Date().toISOString().split("T")[0],
+      status: "Ativo",
+      ultimoAcesso: "Hoje, agora",
+      origem: "Cadastro no App",
+      passwordHash,
+    };
+
+    userDatabase[cleanEmail] = newUser;
+    console.log(`[AUTH REGISTER]: Novo usuário cadastrado: ${cleanEmail}`);
+
+    res.json({
+      success: true,
+      message: "Cadastro realizado com sucesso!",
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        nome: newUser.nome,
+        plano: newUser.plano,
+      },
+    });
+  } catch (err: any) {
+    console.error("Register error:", err);
+    res.status(500).json({ error: "Erro interno ao cadastrar nova conta." });
+  }
+});
+
+// AUTH API: Login user
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, senha } = req.body;
+    if (!email || typeof email !== "string" || !email.includes("@")) {
+      return res.status(400).json({ error: "E-mail inválido." });
+    }
+    const cleanEmail = email.toLowerCase().trim();
+
+    let user = userDatabase[cleanEmail];
+    if (!user) {
+      const formattedName = cleanEmail.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      user = {
+        id: `usr_${Date.now()}`,
+        email: cleanEmail,
+        nome: formattedName,
+        plano: cleanEmail === "meuprofia@gmail.com" ? "Premium" : "Free",
+        dataCadastro: new Date().toISOString().split("T")[0],
+        status: "Ativo",
+        ultimoAcesso: "Hoje, agora",
+        origem: "Login Direto",
+      };
+      userDatabase[cleanEmail] = user;
+    } else {
+      user.ultimoAcesso = "Hoje, agora";
+      if (senha && user.passwordHash) {
+        const isValid = await bcrypt.compare(senha, user.passwordHash);
+        if (!isValid) {
+          return res.status(401).json({ error: "Senha incorreta. Verifique os dados ou redefina sua senha." });
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      message: "Login efetuado com sucesso!",
+      user: {
+        id: user.id,
+        email: user.email,
+        nome: user.nome,
+        plano: user.plano,
+      },
+    });
+  } catch (err: any) {
+    console.error("Login error:", err);
+    res.status(500).json({ error: "Erro ao autenticar usuário." });
+  }
+});
+
 // Interface for Student Feedback Records
 export interface FeedbackRecord {
   id: string;
@@ -561,36 +531,8 @@ export interface FeedbackRecord {
   anonimo?: boolean;
 }
 
-// In-memory feedback database store
-const feedbackDatabase: FeedbackRecord[] = [
-  {
-    id: "fb_101",
-    usuario_email: "lucas@estudante.com",
-    usuario_nome: "Lucas Silva",
-    mensagem: "Gostaria de ver mais questões resolvidas em vídeo nos simulados do ENEM. O app está sensacional!",
-    data_envio: "30/07/2026 às 11:20",
-    status: "Não lido",
-    anonimo: false,
-  },
-  {
-    id: "fb_102",
-    usuario_email: "carla.mendes@estudante.com",
-    usuario_nome: "Carla Mendes",
-    mensagem: "Poderiam adicionar modo escuro? Estudo muito à noite e a tela clara incomoda um pouco os olhos.",
-    data_envio: "30/07/2026 às 09:15",
-    status: "Não lido",
-    anonimo: false,
-  },
-  {
-    id: "fb_103",
-    usuario_email: "marina.costa@gmail.com",
-    usuario_nome: "Marina Costa",
-    mensagem: "A correção de redação com o Prof IA me ajudou a tirar 960 na redação do simulado! Parabéns à equipe pelo app.",
-    data_envio: "29/07/2026 às 18:45",
-    status: "Lido",
-    anonimo: false,
-  },
-];
+// In-memory feedback database store (starts empty, populated by real user feedback)
+const feedbackDatabase: FeedbackRecord[] = [];
 
 // PUBLIC / ALUNO API: Submit Feedback / Sugestão
 app.post("/api/feedbacks", (req, res) => {
@@ -714,6 +656,13 @@ app.post("/api/gemini/chat", async (req, res) => {
 
     const userEmail = (profile?.email || "").toLowerCase().trim();
 
+    const studentUsers = Object.values(userDatabase).filter(u => u.email.toLowerCase().trim() !== "meuprofia@gmail.com");
+    const totalCount = studentUsers.length;
+    const freeCount = studentUsers.filter(u => u.plano === "Free").length;
+    const premiumCount = studentUsers.filter(u => u.plano === "Premium").length;
+    const onlineStudents = studentUsers.filter(u => u.ultimoAcesso.includes("agora") || u.ultimoAcesso.includes("minuto")).length;
+    const mrrValue = (premiumCount * 29.90).toFixed(2);
+
     const systemInstruction = `Você é o Painel Executivo e Assistente de Gestão do Web App. Sua função e o nível de acesso variam estritamente de acordo com o e-mail do usuário autenticado no sistema.
 
 E-MAIL DO GESTOR AUTORIZADO: meuprofia@gmail.com
@@ -731,25 +680,20 @@ E-MAIL DO USUÁRIO CONECTADO ATUALMENTE: ${userEmail || "não_informado"}
 [REGRA 2: MODO GESTOR EXCLUSIVO PARA: meuprofia@gmail.com]
 1. Reconheça e confirme que o usuário atual é o DONO/GESTOR do aplicativo.
 2. Libere o acesso total ao "Painel Executivo e Métricas do App".
-3. Sempre que o gestor solicitar informações sobre o status, relatórios, métricas ou desempenho do aplicativo, exiba um resumo limpo e bem formatado em Markdown com as seguintes métricas do sistema:
+3. Sempre que o gestor solicitar informações sobre o status, relatórios, métricas ou desempenho do aplicativo, exiba um resumo limpo e bem formatado em Markdown com as métricas reais atuais do sistema (O gestor não é contabilizado nas métricas de alunos):
 
    📊 PAINEL DE GESTÃO DO APLICATIVO
 
    🟢 ATIVIDADE EM TEMPO REAL
-   • Usuários Online Agora: 142
-   • Mensagens Enviadas Hoje: 4.850
+   • Estudantes Conectados Agora: ${onlineStudents}
+   
+   👥 BASE DE ESTUDANTES E PLANOS (DADOS REAIS DA BASE DE ALUNOS)
+   • Total de Contas de Alunos Cadastradas: ${totalCount}
+   • Alunos no Plano Free: ${freeCount}
+   • Alunos no Plano Premium (Pagos): ${premiumCount}
 
-   👥 BASE DE USUÁRIOS E PLANOS
-   • Total de Contas Conectadas: 1.850
-   • Usuários no Plano Free: 1.620
-   • Usuários no Plano Premium: 230
-   • Total de Planos Assinados (Pagos): 230
-   • Novos Assinantes (Mês Atual): 42
-
-   💰 USO DE IA E FINANCEIRO
-   • Receita Recorrente com Usuários Ativos (MRR): R$ 6.877,00/mês (230 usuários Premium x R$ 29,90/mês)
-   • Consumo/Chamadas de API Hoje: 18.420
-   • Custo Estimado da API (Mês): R$ 142,50
+   💰 RECEITA E OPERAÇÃO REAIS
+   • Receita Recorrente Mensal (MRR): R$ ${mrrValue}/mês (${premiumCount} alunos Premium x R$ 29,90)
 
 4. Ofereça insights e respostas focadas em gestão de negócios, aquisição de clientes, custos operacionais e desempenho do sistema sempre que solicitado pelo gestor.
 

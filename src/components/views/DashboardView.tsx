@@ -43,6 +43,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   return (
     <div className="space-y-6 pb-8 font-sans">
+      {/* Pending Anamnese Banner for real new users */}
+      {!profile.anamneseConcluida && (
+        <div className="bg-gradient-to-r from-[#1D3C8F] via-[#2B5AC6] to-[#3A7BFF] p-5 rounded-3xl text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-amber-400/20 flex items-center justify-center shrink-0 border border-amber-400/30">
+              <Sparkles className="w-6 h-6 text-amber-300 animate-bounce" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base sm:text-lg">Seu perfil está zerado! Vamos configurar com a IA?</h3>
+              <p className="text-xs text-blue-100 mt-0.5">Responda à Anamnese Educacional em 1 minuto para o Prof IA analisar seus objetivos, seu ritmo e criar seu cronograma 100% real.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => onNavigate('anamnese')}
+            className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all cursor-pointer whitespace-nowrap shrink-0 hover:scale-105"
+          >
+            Fazer Anamnese Agora
+          </button>
+        </div>
+      )}
+
       {/* 4 Summary Stat Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: XP Total */}

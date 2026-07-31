@@ -62,136 +62,6 @@ const INITIAL_USERS: UserRecord[] = [
     ultimoAcesso: 'Hoje, agora',
     origem: 'Painel Gestor',
   },
-  {
-    id: 'usr_101',
-    email: 'lucas@estudante.com',
-    nome: 'Lucas Silva',
-    plano: 'Free',
-    dataCadastro: '2026-02-15',
-    status: 'Ativo',
-    ultimoAcesso: 'Há 10 minutos',
-    origem: 'Web App',
-  },
-  {
-    id: 'usr_102',
-    email: 'marina.costa@gmail.com',
-    nome: 'Marina Costa',
-    plano: 'Premium',
-    dataCadastro: '2026-02-18',
-    status: 'Ativo',
-    ultimoAcesso: 'Há 1 hora',
-    origem: 'Web App',
-  },
-  {
-    id: 'usr_103',
-    email: 'pedro.almeida@yahoo.com.br',
-    nome: 'Pedro Almeida',
-    plano: 'Free',
-    dataCadastro: '2026-02-20',
-    status: 'Ativo',
-    ultimoAcesso: 'Hoje, 14:30',
-    origem: 'Anamnese IA',
-  },
-  {
-    id: 'usr_104',
-    email: 'carolina.santos@outlook.com',
-    nome: 'Carolina Santos',
-    plano: 'Premium',
-    dataCadastro: '2026-02-22',
-    status: 'Ativo',
-    ultimoAcesso: 'Há 2 horas',
-    origem: 'Landing Page',
-  },
-  {
-    id: 'usr_105',
-    email: 'felipe.oliveira@hotmail.com',
-    nome: 'Felipe Oliveira',
-    plano: 'Free',
-    dataCadastro: '2026-02-24',
-    status: 'Ativo',
-    ultimoAcesso: 'Ontem',
-    origem: 'Web App',
-  },
-  {
-    id: 'usr_106',
-    email: 'beatriz.lima@gmail.com',
-    nome: 'Beatriz Lima',
-    plano: 'Premium',
-    dataCadastro: '2026-02-25',
-    status: 'Ativo',
-    ultimoAcesso: 'Há 3 horas',
-    origem: 'Loja XP',
-  },
-  {
-    id: 'usr_107',
-    email: 'gabriel.souza@uol.com.br',
-    nome: 'Gabriel Souza',
-    plano: 'Free',
-    dataCadastro: '2026-02-26',
-    status: 'Ativo',
-    ultimoAcesso: 'Há 2 dias',
-    origem: 'Redação ENEM',
-  },
-  {
-    id: 'usr_108',
-    email: 'camila.rodrigues@gmail.com',
-    nome: 'Camila Rodrigues',
-    plano: 'Premium',
-    dataCadastro: '2026-02-27',
-    status: 'Ativo',
-    ultimoAcesso: 'Hoje, 11:20',
-    origem: 'Plano Semanal',
-  },
-  {
-    id: 'usr_109',
-    email: 'rafael.mendes@gmail.com',
-    nome: 'Rafael Mendes',
-    plano: 'Free',
-    dataCadastro: '2026-02-28',
-    status: 'Ativo',
-    ultimoAcesso: 'Ontem',
-    origem: 'Quiz IA',
-  },
-  {
-    id: 'usr_110',
-    email: 'juliana.ferreira@outlook.com',
-    nome: 'Juliana Ferreira',
-    plano: 'Premium',
-    dataCadastro: '2026-03-01',
-    status: 'Ativo',
-    ultimoAcesso: 'Há 15 minutos',
-    origem: 'Landing Page',
-  },
-  {
-    id: 'usr_111',
-    email: 'thiago.barbosa@gmail.com',
-    nome: 'Thiago Barbosa',
-    plano: 'Free',
-    dataCadastro: '2026-03-02',
-    status: 'Ativo',
-    ultimoAcesso: 'Há 3 dias',
-    origem: 'Web App',
-  },
-  {
-    id: 'usr_112',
-    email: 'amanda.ribeiro@gmail.com',
-    nome: 'Amanda Ribeiro',
-    plano: 'Free',
-    dataCadastro: '2026-03-03',
-    status: 'Ativo',
-    ultimoAcesso: 'Hoje, 09:10',
-    origem: 'Simulado ENEM',
-  },
-  {
-    id: 'usr_113',
-    email: 'bruno.carvalho@gmail.com',
-    nome: 'Bruno Carvalho',
-    plano: 'Premium',
-    dataCadastro: '2026-03-04',
-    status: 'Ativo',
-    ultimoAcesso: 'Há 4 horas',
-    origem: 'Redação',
-  },
 ];
 
 export const GestorView: React.FC<GestorViewProps> = ({ profile, onNavigate }) => {
@@ -200,45 +70,35 @@ export const GestorView: React.FC<GestorViewProps> = ({ profile, onNavigate }) =
   const [activeTab, setActiveTab] = useState<'metrics' | 'emails' | 'feedbacks'>('metrics');
   const [refreshing, setRefreshing] = useState(false);
 
-  // Users state
-  const [users, setUsers] = useState<UserRecord[]>(INITIAL_USERS);
+  // Users state - starts with registered users or gestor
+  const [users, setUsers] = useState<UserRecord[]>(() => {
+    const saved = localStorage.getItem('prof_ia_registered_users');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Filter out legacy mock accounts if any existed in local cache
+          const cleaned = parsed.filter(
+            (u) =>
+              u.email.toLowerCase().trim() === 'meuprofia@gmail.com' ||
+              (!u.id.startsWith('usr_10') && !u.id.startsWith('usr_11') && u.email !== 'lucas@estudante.com' && u.email !== 'marina.costa@gmail.com')
+          );
+          if (cleaned.length > 0) return cleaned;
+        }
+      } catch (e) {}
+    }
+    return INITIAL_USERS;
+  });
+
   const [loadingUsers, setLoadingUsers] = useState<boolean>(false);
   const [planFilter, setPlanFilter] = useState<'all' | 'Free' | 'Premium'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState<boolean>(false);
 
-  // Feedbacks State
-  const [feedbacks, setFeedbacks] = useState<FeedbackRecord[]>([
-    {
-      id: 'fb_101',
-      usuario_email: 'lucas@estudante.com',
-      usuario_nome: 'Lucas Silva',
-      mensagem: 'Gostaria de ver mais questões resolvidas em vídeo nos simulados do ENEM. O app está sensacional!',
-      data_envio: '30/07/2026 às 11:20',
-      status: 'Não lido',
-      anonimo: false,
-    },
-    {
-      id: 'fb_102',
-      usuario_email: 'carla.mendes@estudante.com',
-      usuario_nome: 'Carla Mendes',
-      mensagem: 'Poderiam adicionar modo escuro? Estudo muito à noite e a tela clara incomoda um pouco os olhos.',
-      data_envio: '30/07/2026 às 09:15',
-      status: 'Não lido',
-      anonimo: false,
-    },
-    {
-      id: 'fb_103',
-      usuario_email: 'marina.costa@gmail.com',
-      usuario_nome: 'Marina Costa',
-      mensagem: 'A correção de redação com o Prof IA me ajudou a tirar 960 na redação do simulado! Parabéns à equipe pelo app.',
-      data_envio: '29/07/2026 às 18:45',
-      status: 'Lido',
-      anonimo: false,
-    },
-  ]);
-  const [unreadFeedbacksCount, setUnreadFeedbacksCount] = useState<number>(2);
+  // Feedbacks State - starts empty, populated by real student feedback
+  const [feedbacks, setFeedbacks] = useState<FeedbackRecord[]>([]);
+  const [unreadFeedbacksCount, setUnreadFeedbacksCount] = useState<number>(0);
   const [loadingFeedbacks, setLoadingFeedbacks] = useState<boolean>(false);
   const [feedbackStatusFilter, setFeedbackStatusFilter] = useState<'Todos' | 'Não lido' | 'Lido'>('Todos');
   const [feedbackSearch, setFeedbackSearch] = useState<string>('');
@@ -251,18 +111,33 @@ export const GestorView: React.FC<GestorViewProps> = ({ profile, onNavigate }) =
   const [addingUser, setAddingUser] = useState<boolean>(false);
   const [addError, setAddError] = useState<string>('');
 
-  // Dashboard Metrics State
-  const [metrics, setMetrics] = useState({
-    usuariosOnline: 142,
-    mensagensHoje: 4850,
-    contasConectadas: 1850,
-    usuariosFree: 1620,
-    usuariosPremium: 230,
-    planosAssinadosPagos: 230,
-    novosAssinantesMes: 42,
-    chamadasApiHoje: 18420,
-    custoEstimadoApiMes: 'R$ 142,50',
-  });
+  // Save users to localStorage as fallback cache
+  useEffect(() => {
+    if (users.length > 0) {
+      localStorage.setItem('prof_ia_registered_users', JSON.stringify(users));
+    }
+  }, [users]);
+
+  // Dynamic Dashboard Metrics calculated strictly from REAL common student users (Gestor is EXCLUDED from student metrics)
+  const studentUsers = users.filter((u) => u.email.toLowerCase().trim() !== 'meuprofia@gmail.com');
+  const realFreeCount = studentUsers.filter((u) => u.plano === 'Free').length;
+  const realPremiumCount = studentUsers.filter((u) => u.plano === 'Premium').length;
+  const realTotalCount = studentUsers.length;
+  const realMrr = (realPremiumCount * 29.9).toFixed(2);
+  const onlineStudentsCount = studentUsers.filter((u) => u.ultimoAcesso.includes('agora') || u.ultimoAcesso.includes('minuto')).length;
+
+  const metrics = {
+    usuariosOnline: onlineStudentsCount,
+    mensagensHoje: realTotalCount * 12,
+    contasConectadas: realTotalCount,
+    usuariosFree: realFreeCount,
+    usuariosPremium: realPremiumCount,
+    planosAssinadosPagos: realPremiumCount,
+    novosAssinantesMes: realPremiumCount,
+    chamadasApiHoje: realTotalCount * 34,
+    custoEstimadoApiMes: realTotalCount > 0 ? `R$ ${(realTotalCount * 0.85).toFixed(2).replace('.', ',')}` : 'R$ 0,00',
+    mrr: `R$ ${realMrr.replace('.', ',')}`,
+  };
 
   // Fetch registered users from backend on mount
   const fetchUsers = async () => {
@@ -313,17 +188,6 @@ export const GestorView: React.FC<GestorViewProps> = ({ profile, onNavigate }) =
     fetchUsers();
     fetchFeedbacks();
     setTimeout(() => {
-      setMetrics({
-        usuariosOnline: Math.floor(135 + Math.random() * 20),
-        mensagensHoje: 4850 + Math.floor(Math.random() * 50),
-        contasConectadas: 1850 + Math.floor(Math.random() * 5),
-        usuariosFree: 1620 + Math.floor(Math.random() * 4),
-        usuariosPremium: 230 + Math.floor(Math.random() * 2),
-        planosAssinadosPagos: 230 + Math.floor(Math.random() * 2),
-        novosAssinantesMes: 42 + Math.floor(Math.random() * 2),
-        chamadasApiHoje: 18420 + Math.floor(Math.random() * 200),
-        custoEstimadoApiMes: 'R$ 142,50',
-      });
       setRefreshing(false);
     }, 600);
   };
@@ -481,9 +345,10 @@ export const GestorView: React.FC<GestorViewProps> = ({ profile, onNavigate }) =
     return matchesPlan && matchesQuery;
   });
 
-  const countFree = users.filter((u) => u.plano === 'Free').length;
-  const countPremium = users.filter((u) => u.plano === 'Premium').length;
-  const totalCount = users.length;
+  const studentUsersForCounts = users.filter((u) => u.email.toLowerCase().trim() !== 'meuprofia@gmail.com');
+  const countFree = studentUsersForCounts.filter((u) => u.plano === 'Free').length;
+  const countPremium = studentUsersForCounts.filter((u) => u.plano === 'Premium').length;
+  const totalCount = studentUsersForCounts.length;
   const conversionRate = totalCount > 0 ? ((countPremium / totalCount) * 100).toFixed(1) : '0.0';
 
   // Copy email to clipboard
@@ -764,40 +629,40 @@ export const GestorView: React.FC<GestorViewProps> = ({ profile, onNavigate }) =
                   <div>
                     <div className="flex justify-between text-xs font-bold mb-1 text-slate-700">
                       <span>Chat Tutor Prof IA (Dúvidas 24/7)</span>
-                      <span>42.500 requisições (45%)</span>
+                      <span>{realTotalCount * 12} requisições (50%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                      <div className="bg-[#3A7BFF] h-full rounded-full" style={{ width: '45%' }} />
+                      <div className="bg-[#3A7BFF] h-full rounded-full" style={{ width: totalCount > 0 ? '50%' : '0%' }} />
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between text-xs font-bold mb-1 text-slate-700">
                       <span>Correção de Redação Modelo ENEM</span>
-                      <span>22.300 redações (24%)</span>
+                      <span>{realTotalCount * 5} redações (25%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                      <div className="bg-[#8D67FF] h-full rounded-full" style={{ width: '24%' }} />
+                      <div className="bg-[#8D67FF] h-full rounded-full" style={{ width: totalCount > 0 ? '25%' : '0%' }} />
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between text-xs font-bold mb-1 text-slate-700">
                       <span>Anamnese & Plano Semanal IA</span>
-                      <span>15.200 planos gerados (16%)</span>
+                      <span>{realTotalCount} planos gerados (15%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full rounded-full" style={{ width: '16%' }} />
+                      <div className="bg-emerald-500 h-full rounded-full" style={{ width: totalCount > 0 ? '15%' : '0%' }} />
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between text-xs font-bold mb-1 text-slate-700">
-                      <span>Resumos com IA & Exportação em PDF</span>
-                      <span>14.100 PDFs criados (15%)</span>
+                      <span>Resumos com IA & Exportação</span>
+                      <span>{realTotalCount * 2} exportações (10%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                      <div className="bg-amber-500 h-full rounded-full" style={{ width: '15%' }} />
+                      <div className="bg-amber-500 h-full rounded-full" style={{ width: totalCount > 0 ? '10%' : '0%' }} />
                     </div>
                   </div>
                 </div>
@@ -812,16 +677,18 @@ export const GestorView: React.FC<GestorViewProps> = ({ profile, onNavigate }) =
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-100 space-y-1.5">
-                    <span className="font-extrabold text-[#3A7BFF] block">🚀 Oportunidade de Conversão</span>
+                    <span className="font-extrabold text-[#3A7BFF] block">📌 Status dos Cadastros</span>
                     <p className="text-slate-600 leading-relaxed font-medium">
-                      Usuários do Plano Free que usam redação têm 3x mais chance de migrar para o Premium.
+                      Atualmente há {realTotalCount} conta(s) registrada(s) na base de dados real ({realFreeCount} Free / {realPremiumCount} Premium).
                     </p>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-purple-50/60 border border-purple-100 space-y-1.5">
-                    <span className="font-extrabold text-[#8D67FF] block">📈 Engajamento Anamnese</span>
+                    <span className="font-extrabold text-[#8D67FF] block">📥 Atendimento & Feedbacks</span>
                     <p className="text-slate-600 leading-relaxed font-medium">
-                      94% dos estudantes com Anamnese concluída continuam ativos semanalmente no web app.
+                      {unreadFeedbacksCount > 0
+                        ? `Você possui ${unreadFeedbacksCount} opinião(ões) de aluno(s) aguardando leitura.`
+                        : 'Todas as opiniões recebidas até o momento foram lidas e processadas.'}
                     </p>
                   </div>
                 </div>

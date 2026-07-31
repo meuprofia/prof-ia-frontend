@@ -79,11 +79,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
-    onSuccess({
-      nome: nome || email.split('@')[0] || 'Estudante',
-      email,
-      isNewUser: mode === 'signup',
-    });
+    setLoading(true);
+    try {
+      const endpoint = mode === 'signup' ? '/api/auth/register' : '/api/auth/login';
+      const res = await fetch(getApiUrl(endpoint), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome,
+          email,
+          senha,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Ocorreu um erro ao processar. Tente novamente.');
+        setLoading(false);
+        return;
+      }
+
+      const returnedName = data.user?.nome || nome || email.split('@')[0] || 'Estudante';
+      onSuccess({
+        nome: returnedName,
+        email: email.toLowerCase().trim(),
+        isNewUser: mode === 'signup',
+      });
+    } catch (err) {
+      // Fallback in case of server offline
+      onSuccess({
+        nome: nome || email.split('@')[0] || 'Estudante',
+        email: email.toLowerCase().trim(),
+        isNewUser: mode === 'signup',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

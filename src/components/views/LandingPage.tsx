@@ -27,6 +27,8 @@ import {
 import { Mascot } from '../Mascot';
 
 interface LandingPageProps {
+  onOpenLogin?: () => void;
+  onOpenSignup?: () => void;
   onStartNow?: () => void;
   onLoginClick?: () => void;
   onOpenAuth?: () => void;
@@ -34,30 +36,31 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
+  onOpenLogin,
+  onOpenSignup,
   onStartNow,
   onLoginClick,
   onOpenAuth,
-  onDirectEnter,
 }) => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
-  const handleAction = () => {
-    if (onDirectEnter) {
-      onDirectEnter();
-    } else if (onOpenAuth) {
-      onOpenAuth();
-    } else if (onStartNow) {
-      onStartNow();
-    }
-  };
-
   const handleLogin = () => {
-    if (onLoginClick) {
+    if (onOpenLogin) {
+      onOpenLogin();
+    } else if (onLoginClick) {
       onLoginClick();
     } else if (onOpenAuth) {
       onOpenAuth();
-    } else if (onDirectEnter) {
-      onDirectEnter();
+    }
+  };
+
+  const handleSignup = () => {
+    if (onOpenSignup) {
+      onOpenSignup();
+    } else if (onStartNow) {
+      onStartNow();
+    } else if (onOpenAuth) {
+      onOpenAuth();
     }
   };
 
@@ -117,13 +120,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="flex items-center gap-2 sm:gap-3">
             <button
-              onClick={handleLogin}
-              className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-700 hover:text-[#3A7BFF] transition-colors rounded-xl hover:bg-slate-50 cursor-pointer"
+              onClick={handleSignup}
+              className="px-4 py-2 text-xs sm:text-sm font-bold text-[#3A7BFF] hover:bg-blue-50 border border-blue-200 transition-colors rounded-xl cursor-pointer"
             >
-              Já tenho conta
+              Cadastrar
             </button>
             <button
-              onClick={handleAction}
+              onClick={handleLogin}
               className="px-5 py-2.5 text-xs sm:text-sm font-bold bg-[#3A7BFF] hover:bg-[#2563EB] text-white rounded-2xl shadow-md shadow-blue-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-2"
             >
               <span>Entrar no App</span>
@@ -156,7 +159,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {/* Action Button */}
             <div className="pt-2 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
               <button
-                onClick={handleAction}
+                onClick={handleSignup}
                 className="w-full sm:w-auto px-8 py-4 bg-[#3A7BFF] hover:bg-[#2563EB] text-white font-extrabold rounded-2xl shadow-xl shadow-blue-500/25 hover:shadow-2xl transition-all hover:-translate-y-0.5 flex items-center justify-center gap-3 text-base sm:text-lg cursor-pointer group"
               >
                 <span>Experimentar Grátis Agora</span>
@@ -502,7 +505,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             <button
-              onClick={handleAction}
+              onClick={handleSignup}
               className="mt-6 w-full py-3.5 px-4 bg-[#3A7BFF] hover:bg-[#2563EB] text-white font-extrabold rounded-2xl shadow-md transition-all text-sm cursor-pointer flex items-center justify-center gap-2"
             >
               <span>Garantir Meu Acesso Agora</span>
@@ -569,7 +572,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
               <button
-                onClick={handleAction}
+                onClick={handleSignup}
                 className="mt-8 w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-md transition-colors text-sm cursor-pointer flex items-center justify-center gap-2"
               >
                 <CheckCircle2 className="w-4 h-4" />
@@ -709,7 +712,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </p>
           <div className="pt-2">
             <button
-              onClick={handleAction}
+              onClick={handleSignup}
               className="px-8 py-4 bg-white text-[#3A7BFF] hover:bg-slate-100 font-black rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-base sm:text-lg cursor-pointer inline-flex items-center gap-2"
             >
               <span>Começar Minha Preparação Grátis</span>

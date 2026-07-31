@@ -28,81 +28,41 @@ import { ResetPasswordView } from './components/views/ResetPasswordView';
 import { PremiumMysteryModal } from './components/PremiumMysteryModal';
 import { getApiUrl } from './lib/api';
 
-const DEFAULT_PROFILE: UserProfile = {
-  nome: 'Lucas Silva',
-  email: 'lucas@estudante.com',
+const createFreshProfile = (email: string, nome?: string): UserProfile => ({
+  nome: nome || (email ? email.split('@')[0] : 'Novo Estudante'),
+  email: email,
   escolaridade: 'Ensino Médio',
-  objetivos: ['Passar no ENEM', 'Aprovação em Vestibular'],
-  materiasIn: ['Português', 'História', 'Biologia'],
-  materiasOut: ['Matemática', 'Física', 'Química'],
-  materiaPersonalizada: 'Programação Python',
-  horarioRendimento: 'Noite',
+  objetivos: [],
+  materiasIn: [],
+  materiasOut: [],
+  materiaPersonalizada: '',
+  horarioRendimento: 'Manhã',
   preferenciaAprendizado: 'Exercícios',
   situacaoEducacional: 'Escola',
-  dificuldades: ['Foco e concentração', 'Procrastinação'],
-  anamneseConcluida: true,
-};
+  dificuldades: [],
+  anamneseConcluida: email.toLowerCase().trim() === 'meuprofia@gmail.com' ? true : false,
+});
 
-const DEFAULT_STATS: UserStats = {
-  streak: 5,
-  moedas: 18,
-  xp: 340,
-  tituloAtual: 'Aspirante a Sábio',
-  tempoPlanejadoMin: 90,
-  tarefasConcluidas: 8,
-  quizzesRealizados: 4,
-  simuladosRealizados: 1,
-  redacoesEnviadas: 2,
-};
+const createFreshStats = (): UserStats => ({
+  streak: 0,
+  moedas: 0,
+  xp: 0,
+  tituloAtual: 'Novato no Prof IA',
+  tempoPlanejadoMin: 0,
+  tarefasConcluidas: 0,
+  quizzesRealizados: 0,
+  simuladosRealizados: 0,
+  redacoesEnviadas: 0,
+});
 
-const DEFAULT_SCHEDULE: DaySchedule[] = [
-  {
-    dia: 'Segunda-feira',
-    missoes: [
-      { id: 'm1', materia: 'Matemática', topico: 'Funções Quadráticas e Gráficos', duracao: '45 min', tipo: 'Teoria + Exercícios', concluida: true },
-      { id: 'm2', materia: 'Português', topico: 'Sintaxe e Orações Subordinadas', duracao: '30 min', tipo: 'Flashcards', concluida: true },
-    ],
-  },
-  {
-    dia: 'Terça-feira',
-    missoes: [
-      { id: 'm3', materia: 'Física', topico: 'Cinemática e Leis de Newton', duracao: '50 min', tipo: 'Exercícios Práticos', concluida: false },
-      { id: 'm4', materia: 'História', topico: 'Era Vargas e Segunda Guerra', duracao: '40 min', tipo: 'Resumo com IA', concluida: false },
-    ],
-  },
-  {
-    dia: 'Quarta-feira',
-    missoes: [
-      { id: 'm5', materia: 'Redação', topico: 'Estruturação da Proposta de Intervenção', duracao: '60 min', tipo: 'Prática de Escrita', concluida: false },
-      { id: 'm6', materia: 'Biologia', topico: 'Ecologia e Cadeias Alimentares', duracao: '35 min', tipo: 'Quiz de Fixação', concluida: false },
-    ],
-  },
-  {
-    dia: 'Quinta-feira',
-    missoes: [
-      { id: 'm7', materia: 'Química', topico: 'Estequiometria e Soluções', duracao: '45 min', tipo: 'Exercícios', concluida: false },
-      { id: 'm8', materia: 'Filosofia', topico: 'Racionalismo vs Empirismo', duracao: '30 min', tipo: 'Leitura Didática', concluida: false },
-    ],
-  },
-  {
-    dia: 'Sexta-feira',
-    missoes: [
-      { id: 'm9', materia: 'Geografia', topico: 'Urbanização e Globalização', duracao: '40 min', tipo: 'Mapa Mental', concluida: false },
-      { id: 'm10', materia: 'Matemática', topico: 'Geometria Plana', duracao: '45 min', tipo: 'Simulado Rápido', concluida: false },
-    ],
-  },
-  {
-    dia: 'Sábado',
-    missoes: [
-      { id: 'm11', materia: 'Simulado', topico: 'Simulado de 20 Questões Mistas', duracao: '90 min', tipo: 'Simulado Realístico', concluida: false },
-    ],
-  },
-  {
-    dia: 'Domingo',
-    missoes: [
-      { id: 'm12', materia: 'Revisão', topico: 'Revisão Semanal dos Pontos Fracos', duracao: '45 min', tipo: 'Raio X', concluida: false },
-    ],
-  },
+const createFreshSchedule = (): DaySchedule[] => [
+  { dia: 'Segunda-feira', missoes: [] },
+  { dia: 'Terça-feira', missoes: [] },
+  { dia: 'Quarta-feira', missoes: [] },
+  { dia: 'Quinta-feira', missoes: [] },
+  { dia: 'Sexta-feira', missoes: [] },
+  { dia: 'Sábado', missoes: [] },
+  { dia: 'Domingo', missoes: [] },
 ];
 
 export function App() {
@@ -110,6 +70,7 @@ export function App() {
     return localStorage.getItem('prof_ia_auth') === 'true';
   });
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('signup');
   const [authSuccessNotice, setAuthSuccessNotice] = useState<string>('');
   const [resetToken, setResetToken] = useState<string | null>(() => {
     if (typeof window !== 'undefined') {
@@ -123,40 +84,95 @@ export function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const [showPremiumModal, setShowPremiumModal] = useState<boolean>(false);
 
-  // User Profile & Stats State
+  // Active User Profile & Stats State (100% Real, tied to authenticated user email)
   const [profile, setProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('prof_ia_profile');
-    return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
+    const activeEmail = localStorage.getItem('prof_ia_active_email') || '';
+    if (activeEmail) {
+      const saved = localStorage.getItem(`prof_ia_profile_${activeEmail.toLowerCase().trim()}`);
+      if (saved) return JSON.parse(saved);
+      return createFreshProfile(activeEmail);
+    }
+    return createFreshProfile('');
   });
 
   const [stats, setStats] = useState<UserStats>(() => {
-    const saved = localStorage.getItem('prof_ia_stats');
-    return saved ? JSON.parse(saved) : DEFAULT_STATS;
+    const activeEmail = profile?.email || localStorage.getItem('prof_ia_active_email') || '';
+    if (activeEmail) {
+      const saved = localStorage.getItem(`prof_ia_stats_${activeEmail.toLowerCase().trim()}`);
+      if (saved) return JSON.parse(saved);
+    }
+    return createFreshStats();
   });
 
-  const [schedule, setSchedule] = useState<DaySchedule[]>(DEFAULT_SCHEDULE);
+  const [schedule, setSchedule] = useState<DaySchedule[]>(() => {
+    const activeEmail = profile?.email || localStorage.getItem('prof_ia_active_email') || '';
+    if (activeEmail) {
+      const saved = localStorage.getItem(`prof_ia_schedule_${activeEmail.toLowerCase().trim()}`);
+      if (saved) return JSON.parse(saved);
+    }
+    return createFreshSchedule();
+  });
 
-  // Sync state to local storage
+  // Sync state to per-user local storage
   useEffect(() => {
     localStorage.setItem('prof_ia_auth', isAuthenticated ? 'true' : 'false');
-    localStorage.setItem('prof_ia_profile', JSON.stringify(profile));
-    localStorage.setItem('prof_ia_stats', JSON.stringify(stats));
-  }, [isAuthenticated, profile, stats]);
+    const email = profile?.email ? profile.email.toLowerCase().trim() : '';
+    if (email) {
+      localStorage.setItem('prof_ia_active_email', email);
+      localStorage.setItem(`prof_ia_profile_${email}`, JSON.stringify(profile));
+      localStorage.setItem(`prof_ia_stats_${email}`, JSON.stringify(stats));
+      localStorage.setItem(`prof_ia_schedule_${email}`, JSON.stringify(schedule));
+    }
+  }, [isAuthenticated, profile, stats, schedule]);
 
   // Auth Handlers
   const handleLoginSuccess = (data: { nome: string; email: string; isNewUser: boolean } | string) => {
+    const email = (typeof data === 'object' ? data.email : data).toLowerCase().trim();
+    const nome = typeof data === 'object' ? data.nome : email.split('@')[0];
+    const isNew = typeof data === 'object' ? data.isNewUser : false;
+
     setIsAuthenticated(true);
     setShowAuthModal(false);
     setIsViewingLandingPage(false);
-    if (typeof data === 'object') {
-      setProfile((prev) => ({
-        ...prev,
-        nome: data.nome || prev.nome,
-        email: data.email || prev.email,
-        anamneseConcluida: data.isNewUser ? false : true,
-      }));
+
+    // Save active email
+    localStorage.setItem('prof_ia_active_email', email);
+
+    // Check existing stored profile for this email
+    const savedProf = localStorage.getItem(`prof_ia_profile_${email}`);
+    const savedStats = localStorage.getItem(`prof_ia_stats_${email}`);
+    const savedSchedule = localStorage.getItem(`prof_ia_schedule_${email}`);
+
+    let activeProfile: UserProfile;
+    if (savedProf) {
+      activeProfile = JSON.parse(savedProf);
+      if (isNew) activeProfile.anamneseConcluida = false;
     } else {
-      setProfile((prev) => ({ ...prev, email: data, anamneseConcluida: true }));
+      activeProfile = createFreshProfile(email, nome);
+    }
+
+    let activeStats: UserStats = savedStats ? JSON.parse(savedStats) : createFreshStats();
+    let activeSchedule: DaySchedule[] = savedSchedule ? JSON.parse(savedSchedule) : createFreshSchedule();
+
+    setProfile(activeProfile);
+    setStats(activeStats);
+    setSchedule(activeSchedule);
+
+    // Register user in Gestor list cache
+    const registeredUsersSaved = localStorage.getItem('prof_ia_registered_users');
+    let registeredUsersList: any[] = registeredUsersSaved ? JSON.parse(registeredUsersSaved) : [];
+    if (!registeredUsersList.some((u) => u.email === email)) {
+      registeredUsersList.push({
+        id: `usr_${Date.now()}`,
+        email: email,
+        nome: nome,
+        plano: email === 'meuprofia@gmail.com' ? 'Premium' : 'Free',
+        dataCadastro: new Date().toISOString().split('T')[0],
+        status: 'Ativo',
+        ultimoAcesso: 'Hoje, agora',
+        origem: 'App Login',
+      });
+      localStorage.setItem('prof_ia_registered_users', JSON.stringify(registeredUsersList));
     }
   };
 
@@ -164,6 +180,7 @@ export function App() {
     setIsAuthenticated(false);
     setIsViewingLandingPage(false);
     localStorage.removeItem('prof_ia_auth');
+    localStorage.removeItem('prof_ia_active_email');
   };
 
   const handleRefazerAnamnese = () => {
@@ -175,6 +192,7 @@ export function App() {
     setProfile(updatedProfile);
     setIsViewingLandingPage(false);
     setActiveModule('dashboard');
+    handleRegeneratePlan(updatedProfile);
   };
 
   // Gamification helpers
@@ -278,19 +296,24 @@ export function App() {
     }));
   };
 
-  const handleRegeneratePlan = async () => {
+  const handleRegeneratePlan = async (targetProfile?: UserProfile) => {
+    const profToUse = targetProfile || profile;
     try {
       const res = await fetch(getApiUrl('/api/gemini/study-plan'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profile }),
+        body: JSON.stringify({ profile: profToUse }),
       });
       const data = await res.json();
       if (data.schedule && data.schedule.length > 0) {
         setSchedule(data.schedule);
+        const userEmail = profToUse.email ? profToUse.email.toLowerCase().trim() : '';
+        if (userEmail) {
+          localStorage.setItem(`prof_ia_schedule_${userEmail}`, JSON.stringify(data.schedule));
+        }
       }
     } catch (e) {
-      console.error(e);
+      console.error('Erro ao gerar plano de estudos:', e);
     }
   };
 
@@ -319,27 +342,21 @@ export function App() {
         )}
 
         <LandingPage
-          onOpenAuth={() => setShowAuthModal(true)}
-          onStartNow={() => {
+          onOpenLogin={() => {
             if (isAuthenticated) {
               setIsViewingLandingPage(false);
             } else {
+              setAuthModalMode('login');
               setShowAuthModal(true);
             }
           }}
-          onLoginClick={() => {
+          onOpenSignup={() => {
             if (isAuthenticated) {
               setIsViewingLandingPage(false);
             } else {
+              setAuthModalMode('signup');
               setShowAuthModal(true);
             }
-          }}
-          onDirectEnter={() => {
-            if (!isAuthenticated) {
-              setIsAuthenticated(true);
-            }
-            setIsViewingLandingPage(false);
-            setActiveModule('dashboard');
           }}
         />
 
@@ -349,6 +366,7 @@ export function App() {
             onSuccess={(message) => {
               setResetToken(null);
               setAuthSuccessNotice(message);
+              setAuthModalMode('login');
               setShowAuthModal(true);
               if (typeof window !== 'undefined') {
                 window.history.replaceState({}, '', window.location.pathname);
@@ -356,6 +374,7 @@ export function App() {
             }}
             onCancel={() => {
               setResetToken(null);
+              setAuthModalMode('login');
               setShowAuthModal(true);
               if (typeof window !== 'undefined') {
                 window.history.replaceState({}, '', window.location.pathname);
@@ -366,7 +385,7 @@ export function App() {
 
         {showAuthModal && (
           <AuthModal
-            initialMode={authSuccessNotice ? 'login' : 'signup'}
+            initialMode={authSuccessNotice ? 'login' : authModalMode}
             successNotice={authSuccessNotice}
             onClose={() => {
               setShowAuthModal(false);
