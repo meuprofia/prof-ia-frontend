@@ -82,7 +82,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(true);
     try {
       const endpoint = mode === 'signup' ? '/api/auth/register' : '/api/auth/login';
-      const res = await fetch(getApiUrl(endpoint), {
+      const res = await fetch(`${getApiUrl()}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
