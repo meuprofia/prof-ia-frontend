@@ -45,7 +45,7 @@ export const MaterialInteligenteView: React.FC<MaterialInteligenteViewProps> = (
     setResultado(null);
 
     try {
-      const res = await fetch(getApiUrl('/api/gemini/material'), {
+      const res = await fetch(`${getApiUrl()}/api/gemini/material`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ texto, acao, imagemBase64 }),
