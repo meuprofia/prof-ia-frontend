@@ -74,7 +74,7 @@ export const ChatProfIAView: React.FC<ChatProfIAViewProps> = ({ profile }) => {
         content: m.content,
       }));
 
-      const res = await fetch(getApiUrl('/api/gemini/chat'), {
+      const res = await fetch(`${getApiUrl()}/api/gemini/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
