@@ -35,7 +35,7 @@ export const SimuladoView: React.FC<SimuladoViewProps> = ({ profile }) => {
     setFinished(false);
 
     try {
-      const res = await fetch(getApiUrl('/api/gemini/simulado'), {
+      const res = await fetch(`${getApiUrl()}/api/gemini/simulado`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
