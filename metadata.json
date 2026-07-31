@@ -1,0 +1,6 @@
+{
+  "name": "Prof IA",
+  "description": "Tutor inteligente de estudos com inteligência artificial do Ensino Fundamental a concursos públicos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
