@@ -143,7 +143,7 @@ export const GestorView: React.FC<GestorViewProps> = ({ profile, onNavigate }) =
   const fetchUsers = async () => {
     try {
       setLoadingUsers(true);
-      const res = await fetch(`${getApiUrl()}/api/gestor/users`);
+      const res = await fetch(`${getApiUrl()}/api/gestor/feedbacks`);
       if (res.ok) {
         const data = await res.json();
         if (data.users && Array.isArray(data.users) && data.users.length > 0) {
@@ -198,7 +198,7 @@ export const GestorView: React.FC<GestorViewProps> = ({ profile, onNavigate }) =
     );
 
     try {
-      const res = await fetch(getApiUrl('/api/gestor/feedbacks/status'), {
+      const res = await fetch(`${getApiUrl()}/api/gestor/feedbacks/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status: newStatus }),
