@@ -51,7 +51,7 @@ export const CriarProfIAView: React.FC<CriarProfIAViewProps> = ({ profile }) => 
 
     setLoadingRefine(true);
     try {
-      const res = await fetch(getApiUrl('/api/gemini/editor-refine'), {
+      const res = await fetch(`${getApiUrl()}/api/gemini/editor-refine`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
