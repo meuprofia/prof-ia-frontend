@@ -34,7 +34,7 @@ export const OpiniaoAlunoView: React.FC<OpiniaoAlunoViewProps> = ({ profile }) =
     setErrorMsg('');
 
     try {
-      const response = await fetch(getApiUrl('/api/feedbacks'), {
+      const response = await fetch(`${getApiUrl()}/api/feedbacks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
