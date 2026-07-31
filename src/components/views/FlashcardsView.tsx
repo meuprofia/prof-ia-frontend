@@ -33,7 +33,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({ profile }) => {
     setShowHint(false);
 
     try {
-      const res = await fetch(getApiUrl('/api/gemini/flashcards'), {
+      const res = await fetch(`${getApiUrl()}/api/gemini/flashcards`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ assunto, materia }),
